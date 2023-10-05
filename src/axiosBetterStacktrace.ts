@@ -70,8 +70,7 @@ const axiosBetterStacktrace = (axiosInstance?: AxiosInstance, opts: { errorMsg?:
     },
     (error: unknown) => {
       if (isAxiosError(error) && error.config && isError(error.config.topmostError)) {
-        error.originalStack = error.stack;
-        error.stack = `${error.stack}\n${error.config.topmostError.stack}`;
+        error.cause = error.config.topmostError;
 
         delete error.config.topmostError;
       }

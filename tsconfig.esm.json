@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "module": "esnext",
     "moduleResolution": "node",
     "outDir": "./lib/esm"

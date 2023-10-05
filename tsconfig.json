@@ -1,12 +1,19 @@
 {
+  "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "inlineSourceMap": true,
-    "declaration": true,
+    "declaration": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "references": [
+    {"path": "tsconfig.cjs.json"},
+    {"path": "tsconfig.esm.json"},
+    {"path": "tsconfig.spec.json"},
+  ],
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
 }

@@ -71,7 +71,7 @@ describe('axiosBetterStacktrace()', () => {
 
     axiosBetterStacktrace(agent);
 
-    expect.assertions(10);
+    expect.assertions(5);
 
     try {
       await agent.patch('/test-endpoint');
@@ -80,20 +80,17 @@ describe('axiosBetterStacktrace()', () => {
         'Execution should not reach to this point and raise an error inside an axios handler above',
       );
     } catch (err) {
-      if (err instanceof Error) {
-        [util.inspect(err), err.stack].forEach((errOrStack) => {
-          expect(errOrStack).toContain('Error: Request failed with status code 500');
-          expect(errOrStack).toContain('node_modules/axios/lib/core/createError');
+      const inspectedError = util.inspect(err);
+      expect(inspectedError).toContain('Error: Request failed with status code 500');
+      expect(inspectedError).toContain('node_modules/axios/lib/core/createError');
 
-          expect(errOrStack).toContain('Error: Axios Better Stacktrace');
-          expect(errOrStack).toContain('at Function.axiosBetterStacktraceMethodProxy [as patch]');
-          expect(errOrStack).toContain('axiosBetterStacktrace.spec.ts');
-        });
-      }
+      expect(inspectedError).toContain('Error: Axios Better Stacktrace');
+      expect(inspectedError).toContain('at Function.axiosBetterStacktraceMethodProxy [as patch]');
+      expect(inspectedError).toContain('axiosBetterStacktrace.spec.ts');
     }
   });
 
-  it('should retain original stack trace at error.originalStack', async () => {
+  it('should add toplevelError to the error cause, not the stack', async () => {
     nock(AGENT_BASE_URL)
       .patch(/test-endpoint/)
       .reply(500, 'Internal Server Error');
@@ -102,7 +99,7 @@ describe('axiosBetterStacktrace()', () => {
 
     axiosBetterStacktrace(agent);
 
-    expect.assertions(3);
+    expect.assertions(4);
 
     try {
       await agent.patch('/test-endpoint');
@@ -111,11 +108,13 @@ describe('axiosBetterStacktrace()', () => {
         'Execution should not reach to this point and raise an error inside an axios handler above',
       );
     } catch (err) {
-      const originalStack = (err as AxiosError).originalStack;
+      const originalStack = (err as AxiosError).stack;
 
       expect(originalStack).toContain('Error: Request failed with status code 500');
       expect(originalStack).toContain('node_modules/axios/lib/core/createError');
       expect(originalStack).not.toContain('Error: Axios Better Stacktrace');
+
+      expect((err as AxiosError).cause).not.toContain('Error: Axios Better Stacktrace');
     }
   });
 
@@ -177,11 +176,10 @@ describe('axiosBetterStacktrace()', () => {
 
     await agent.patch('/test-endpoint', { greeting: 'Hello World!' });
 
-    [util.inspect(error), error?.stack].forEach((errOrStack) => {
+    const errOrStack = util.inspect(error);
       expect(errOrStack).toContain('Error: Axios Better Stacktrace');
       expect(errOrStack).toContain('at Function.axiosBetterStacktraceMethodProxy [as patch]');
       expect(errOrStack).toContain('axiosBetterStacktrace.spec.ts');
-    });
   });
 
   it('should remove topmostError from the config on response success', async () => {
